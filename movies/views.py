@@ -105,7 +105,14 @@ def boxoffice(request):
         naver_data = requests.get(f'{NAVER_URL}?query={movie_name}', headers=headers).json()
         # return JsonResponse(naver_data)
         if naver_data['items']:
-            image_code = naver_data['items'][0]['link'][-6:]
+            stackcode = []
+            image_code = naver_data['items'][0]['link']
+            for j in range(len(image_code)-1, -1, -1):
+                if image_code[j] == '=':
+                    break
+                else:
+                    stackcode.insert(0, image_code[j])
+            image_code = ''.join(stackcode)
             image_detail = 'https://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode='
             movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]['image'] = image_detail + image_code
         else:
