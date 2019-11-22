@@ -21,4 +21,5 @@ urlpatterns = [
     # path('signup/', views.signup, name="signup"),
     path('boxoffice_create/', views.boxoffice_create, name="boxoffice_create"),
     path('boxoffice/', views.boxoffice, name="boxoffice"),
+    path('reviews/', views.reviews, name="reviews"),
 ]

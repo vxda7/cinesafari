@@ -25,21 +25,37 @@ class Genre(models.Model):
 
 class Movie(models.Model):    
     title = models.CharField(max_length = 200)
-    link = models.CharField(max_length = 200, default="")
     image = models.CharField(max_length = 300, default="")
-    # image = models.ImageField(blank=True)
     subtitle = models.CharField(max_length = 300, default="")
     pubDate = models.IntegerField()
-    userRating = models.IntegerField()
-
+    userRating = models.FloatField()
     genres = models.ManyToManyField(Genre, related_name="movies")
     actors = models.ManyToManyField(Actor, related_name="movies")
     directors = models.ManyToManyField(Director, related_name="movies")
     like_users = models.ManyToManyField(get_user_model(), related_name="like_movies")
+    boxoffice = models.IntegerField(default=0)
 
 
-class Boxoffice(models.Model):
-    movieNm = models.CharField(max_length = 200)
-    audiAcc = models.IntegerField()
-    openDt = models.CharField(max_length = 50)
-    image = models.CharField(max_length = 200)
+# class Boxoffice(models.Model):
+    # title = models.CharField(max_length = 200)
+    # image = models.CharField(max_length = 300, default="")
+    # subtitle = models.CharField(max_length = 300, default="")
+    # pubDate = models.IntegerField()
+    # userRating = models.FloatField()
+
+    # genres = models.ManyToManyField(Genre, related_name="movies")
+    # actors = models.ManyToManyField(Actor, related_name="movies")
+    # directors = models.ManyToManyField(Director, related_name="movies")
+    # like_users = models.ManyToManyField(get_user_model(), related_name="like_movies")
+
+    # movieNm = models.CharField(max_length = 200)
+    # audiAcc = models.IntegerField()
+    # openDt = models.CharField(max_length = 50)
+    # image = models.CharField(max_length = 200)
+
+
+class Reveiw(models.Model):
+    content = models.TextField(default="")
+    score = models.IntegerField()
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
