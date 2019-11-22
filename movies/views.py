@@ -103,9 +103,11 @@ def boxoffice(request):
     for i in range(len(movie_datas['boxOfficeResult']['weeklyBoxOfficeList'])):
         movie_name = movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]["movieNm"]
         naver_data = requests.get(f'{NAVER_URL}?query={movie_name}', headers=headers).json()
+        # return JsonResponse(naver_data)
         if naver_data['items']:
-            image_data = naver_data['items'][0]['image']
-            movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]['image'] = image_data
+            image_code = naver_data['items'][0]['link'][-6:]
+            image_detail = 'https://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode='
+            movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]['image'] = image_detail + image_code
         else:
             movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]['image'] = ""
     return JsonResponse(movie_datas)
