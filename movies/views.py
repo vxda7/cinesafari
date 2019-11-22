@@ -6,12 +6,17 @@ from datetime import datetime, timedelta
 from .serializers import GenreSerializer, DirectorSerializer, MovieSerializer, ActorSerializer, UserSerializer
 from rest_framework.decorators import api_view, permission_classes,authentication_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import Movie, Genre, Director, Actor
+from .models import Movie, Genre, Director, Actor, Boxoffice
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse, HttpResponse
-
+from bs4 import BeautifulSoup
+import urllib.request
 
 # Create your views here.
+
+# 영화들 데이터 저장하기
+@api_view(['GET'])
+@permission_classes((AllowAny,))
 def datasave(request):
     # 영진위
     thisyear = datetime.now().year
@@ -35,6 +40,7 @@ def datasave(request):
     movie_detail_datas = []
     directors = set()
     actors = set()
+    genres = set()
     idx = 0
     for movie_data in movie_datas['movieListResult']['movieList']:
         movie_name = movie_data['movieNm']
@@ -58,7 +64,17 @@ def datasave(request):
         if movie_detail_data['movieInfoResult']['movieInfo']['actors']:
             for one in movie_detail_data['movieInfoResult']['movieInfo']['actors']:
                 actors.add(one['peopleNm'])
+        if movie_detail_data['movieInfoResult']['movieInfo']['genres']:
+            for one in movie_detail_data['movieInfoResult']['movieInfo']['genres']:
+                a = 0
         idx += 1
+
+    for one in actors:
+        Actor.objects.create(name=one)
+    for one in directors:
+        Director.objects.create(name=one)
+    for one in movie_detail:
+
 
     context = {
         'MOVIE_URL': MOVIE_URL,
@@ -70,17 +86,10 @@ def datasave(request):
     return render(request, 'index.html', context)
 
 
-# @api_view(['POST'])
-# def signup(request):
-#     serializer = UserSerializer(request.POST)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return JsonResponse(serializer.data)
-#     return HttpResponse(status=400)
-
+# 박스오피스 데이터 api에서 모아서 저장하기
 @api_view(['GET'])
 @permission_classes((AllowAny,))
-def boxoffice(request):
+def boxoffice_create(request):
     now = datetime.now() + timedelta(days=-7)
     today = now.strftime('%Y%m%d')
     print(today)
@@ -114,9 +123,40 @@ def boxoffice(request):
                     stackcode.insert(0, image_code[j])
             image_code = ''.join(stackcode)
             image_detail = 'https://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode='
-            movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]['image'] = image_detail + image_code
+            img_url = image_detail + image_code
+            html = urllib.request.urlopen(img_url)
+            source = html.read()
+            soup = BeautifulSoup(source, "html.parser")
+            img = soup.find("img")
+            img_src = img.get("src")
+            # movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]['image'] = image_detail + image_code
+            movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]['image'] = img_src
+
         else:
             movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]['image'] = ""
-    return JsonResponse(movie_datas)
+        
+        # model에 저장하기
+        movieNm = movie_name
+        audiAcc = movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]["audiAcc"]
+        openDt = movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]["audiAcc"]
+        image = img_src
+        Boxoffice.objects.create(movieNm=movieNm, audiAcc=audiAcc, openDt=openDt, image=image)
+    # return JsonResponse(movie_datas)
 
 
+# 저장된 박스오피스 불러내주기
+@api_view(['GET'])
+@permission_classes((AllowAny,))
+def boxoffice(request):
+    boxoffices = list(Boxoffice.objects.values())
+    return JsonResponse(boxoffices, safe=False)
+
+
+
+# @api_view(['POST'])
+# def signup(request):
+#     serializer = UserSerializer(request.POST)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return JsonResponse(serializer.data)
+#     return HttpResponse(status=400)

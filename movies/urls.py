@@ -19,5 +19,6 @@ from . import views
 urlpatterns = [
     path('datasave/', views.datasave, name="datasave"),
     # path('signup/', views.signup, name="signup"),
+    path('boxoffice_create/', views.boxoffice_create, name="boxoffice_create"),
     path('boxoffice/', views.boxoffice, name="boxoffice"),
 ]

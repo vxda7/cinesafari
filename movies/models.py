@@ -27,6 +27,7 @@ class Movie(models.Model):
     title = models.CharField(max_length = 200)
     link = models.CharField(max_length = 200, default="")
     image = models.CharField(max_length = 300, default="")
+    # image = models.ImageField(blank=True)
     subtitle = models.CharField(max_length = 300, default="")
     pubDate = models.IntegerField()
     userRating = models.IntegerField()
@@ -35,3 +36,10 @@ class Movie(models.Model):
     actors = models.ManyToManyField(Actor, related_name="movies")
     directors = models.ManyToManyField(Director, related_name="movies")
     like_users = models.ManyToManyField(get_user_model(), related_name="like_movies")
+
+
+class Boxoffice(models.Model):
+    movieNm = models.CharField(max_length = 200)
+    audiAcc = models.IntegerField()
+    openDt = models.CharField(max_length = 50)
+    image = models.CharField(max_length = 200)
