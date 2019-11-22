@@ -73,8 +73,8 @@ def datasave(request):
         Actor.objects.create(name=one)
     for one in directors:
         Director.objects.create(name=one)
-    for one in movie_detail:
-
+    # for one in movie_detail:
+    #     a = 0
 
     context = {
         'MOVIE_URL': MOVIE_URL,
