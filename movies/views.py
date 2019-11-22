@@ -1,11 +1,14 @@
 from django.shortcuts import render, get_object_or_404
 import json
-import sys
 import requests
 from decouple import config
-from datetime import datetime
+from datetime import datetime, timedelta
 from .serializers import GenreSerializer, DirectorSerializer, MovieSerializer, ActorSerializer, UserSerializer
-
+from rest_framework.decorators import api_view, permission_classes,authentication_classes
+from rest_framework.permissions import IsAuthenticated
+from .models import Movie, Genre, Director, Actor
+from django.contrib.auth import get_user_model
+from django.http import JsonResponse, HttpResponse
 
 
 # Create your views here.
@@ -65,3 +68,45 @@ def datasave(request):
         'movie_detail_datas': movie_detail_datas,
     }
     return render(request, 'index.html', context)
+
+
+# @api_view(['POST'])
+# def signup(request):
+#     serializer = UserSerializer(request.POST)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return JsonResponse(serializer.data)
+#     return HttpResponse(status=400)
+
+@api_view(['POST'])
+def boxoffice(request):
+    now = datetime.now() + timedelta(days=-7)
+    today = now.strftime('%Y%m%d')
+    print(today)
+    MOVIE_KEY = config('MOVIE_KEY')
+    BASIC_URL = 'http://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchWeeklyBoxOfficeList.json'
+    MOVIE_URL = f'{BASIC_URL}?key={MOVIE_KEY}&targetDt={today}'
+    movie_datas = requests.get(MOVIE_URL).json()
+
+    # 네이버
+    NAVER_ID = config('NAVER_ID')
+    NAVER_SECRET = config('NAVER_KEY')
+    NAVER_URL = 'https://openapi.naver.com/v1/search/movie.json'
+
+    headers = {
+        'X-Naver-Client-Id': NAVER_ID,
+        'X-Naver-Client-Secret': NAVER_SECRET,
+    }
+
+    # 이미지 붙여넣기
+    for i in range(len(movie_datas['boxOfficeResult']['weeklyBoxOfficeList'])):
+        movie_name = movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]["movieNm"]
+        naver_data = requests.get(f'{NAVER_URL}?query={movie_name}', headers=headers).json()
+        if naver_data['items']:
+            image_data = naver_data['items'][0]['image']
+            movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]['image'] = image_data
+        else:
+            movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]['image'] = ""
+    return JsonResponse(movie_datas)
+
+
