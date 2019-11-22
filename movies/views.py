@@ -5,7 +5,7 @@ from decouple import config
 from datetime import datetime, timedelta
 from .serializers import GenreSerializer, DirectorSerializer, MovieSerializer, ActorSerializer, UserSerializer
 from rest_framework.decorators import api_view, permission_classes,authentication_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Movie, Genre, Director, Actor
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse, HttpResponse
@@ -78,7 +78,8 @@ def datasave(request):
 #         return JsonResponse(serializer.data)
 #     return HttpResponse(status=400)
 
-@api_view(['POST'])
+@api_view(['GET'])
+@permission_classes((AllowAny,))
 def boxoffice(request):
     now = datetime.now() + timedelta(days=-7)
     today = now.strftime('%Y%m%d')
