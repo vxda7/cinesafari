@@ -1,6 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-import json
-import requests
+import json, os, requests
 from decouple import config
 from datetime import datetime, timedelta
 from .serializers import GenreSerializer, DirectorSerializer, MovieSerializer, ActorSerializer, UserSerializer
@@ -243,51 +242,13 @@ def boxoffice_create(request):
     return JsonResponse(moviedatas, safe=False)
 
 
-
-    # # 이미지 붙여넣기
-    # for i in range(len(movie_datas['boxOfficeResult']['weeklyBoxOfficeList'])):
-    #     movie_name = movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]["movieNm"]
-    #     naver_data = requests.get(f'{NAVER_URL}?query={movie_name}', headers=headers).json()
-    #     # return JsonResponse(naver_data)
-    #     if naver_data['items']:
-    #         stackcode = []
-    #         image_code = naver_data['items'][0]['link']
-    #         for j in range(len(image_code)-1, -1, -1):
-    #             if image_code[j] == '=':
-    #                 break
-    #             else:
-    #                 stackcode.insert(0, image_code[j])
-    #         image_code = ''.join(stackcode)
-    #         image_detail = 'https://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode='
-    #         img_url = image_detail + image_code
-    #         html = urllib.request.urlopen(img_url)
-    #         source = html.read()
-    #         soup = BeautifulSoup(source, "html.parser")
-    #         img = soup.find("img")
-    #         img_src = img.get("src")
-    #         # movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]['image'] = image_detail + image_code
-    #         movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]['image'] = img_src
-
-    #     else:
-    #         movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]['image'] = ""
-        
-    #     # model에 저장하기
-    #     movieNm = movie_name
-    #     audiAcc = movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]["audiAcc"]
-    #     openDt = movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][i]["audiAcc"]
-    #     image = img_src
-    #     Boxoffice.objects.get_or_create(movieNm=movieNm, audiAcc=audiAcc, openDt=openDt, image=image)
-    # return JsonResponse(movie_datas)
-
-
-
 # 저장된 박스오피스 불러내주기
 @api_view(['GET'])
 @permission_classes((AllowAny,))
 def boxoffice(request):
     boxoffice = Movie.objects.filter(boxoffice__gte=1)   # rank가 1 이상인 사람
-    boxoffices = list(boxoffice.values())
-    return JsonResponse(boxoffices, safe=False)
+    serializer = MovieSerializer(boxoffice, many=True)
+    return JsonResponse(serializer.data, safe=False)
 
 
 # 저장된 영화 정보 불러내주기
@@ -298,14 +259,16 @@ def moviedata(request):
     return JsonResponse(moviedatas, safe=False)
 
 
-# @api_view(['POST'])
-# def signup(request):
-#     serializer = UserSerializer(request.POST)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return JsonResponse(serializer.data)
-#     return HttpResponse(status=400)
+
+@api_view(['POST'])
+@permission_classes((AllowAny,))
+def signup(request):
+    serializer = UserSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return JsonResponse(serializer.data)
+    return HttpResponse(status=400)
+
 
 def reviews(request):
-    
     reviews = Review.query.filter_by().all()

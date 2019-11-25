@@ -5,30 +5,33 @@ from django.contrib.auth import get_user_model
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
-        fields = ('name')
+        fields = ('name',)
 
 
 class DirectorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Director
-        fields = ('name')
+        fields = ('name',)
 
 
 class ActorSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Director
-        fields = ('name')
+        model = Actor
+        fields = ('name',)
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ('username', 'password',)
 
 
 class MovieSerializer(serializers.ModelSerializer):
-    director_set = GenreSerializer(many=True)
-    actor_set = ActorSerializer(many=True)
+    genres = GenreSerializer(many=True)
+    directors = DirectorSerializer(many=True)
+    actors = ActorSerializer(many=True)
+    # like_users = UserSerializer(many=True)
     class Meta:
         model = Movie
-        fields = ('id', 'title', 'link', 'image', 'subtitle', 'pubDate', 'userRating', )
+        fields = ('title', 'image', 'subtitle', 'pubDate', 'userRating', 'genres', 'actors', 'directors', 'boxoffice',)
 
-class UserSerializer(serializers.ModelSerializer):
-    movie_set = MovieSerializer(many=True)
-    class Meta:
-        model = get_user_model()
-        fields = ('id', 'username', 'movie_set',)
