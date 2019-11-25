@@ -151,6 +151,8 @@ def boxoffice_create(request):
     imageurls = []
     naver_scores = []
     rank = []
+    watchgrades = []
+    showtimes = []
     directors = set()
     actors = set()
     genres = set()
@@ -162,7 +164,14 @@ def boxoffice_create(request):
         movie_detail_data = requests.get(f'{DETAIL_URL}?key={MOVIE_KEY}&movieCd={movie_code}').json()
         movie_detail_datas.append(movie_detail_data)
         rank.append(movie_data['rank'])
-
+        if movie_detail_data['movieInfoResult']['movieInfo']['audits']:
+            watchgrades.append(movie_detail_data['movieInfoResult']['movieInfo']['audits'][0]['watchGradeNm'])
+        else:
+            watchgrades.append("")
+        if movie_detail_data['movieInfoResult']['movieInfo']['showTm']:
+            showtimes.append(movie_detail_data['movieInfoResult']['movieInfo']['showTm'])
+        else:
+            showtimes.append(0)
         if naver_data['items']:
             naver_score = naver_data['items'][0]['userRating']
             # 이미지 가져오기
@@ -221,11 +230,13 @@ def boxoffice_create(request):
         pubDate = one['movieInfoResult']['movieInfo']['openDt']
         userRating = naver_scores[idx]
         boxoffice = rank[idx]
+        watchGrade = watchgrades[idx]
+        showTm = showtimes[idx]
         genres_list = []
         directors = []
         actors = []
         
-        movie = Movie.objects.get_or_create(title=title, image=image, subtitle=subtitle, pubDate=pubDate, userRating=userRating, boxoffice=boxoffice)[0]
+        movie = Movie.objects.get_or_create(title=title, image=image, subtitle=subtitle, pubDate=pubDate, userRating=userRating, boxoffice=boxoffice, watchGrade=watchGrade, showTm=showTm)[0]
         for genre in one['movieInfoResult']['movieInfo']['genres']:
             genreinstance = Genre.objects.get(name=genre['genreNm'])
             movie.genres.add(genreinstance)

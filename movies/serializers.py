@@ -33,5 +33,5 @@ class MovieSerializer(serializers.ModelSerializer):
     # like_users = UserSerializer(many=True)
     class Meta:
         model = Movie
-        fields = ('title', 'image', 'subtitle', 'pubDate', 'userRating', 'genres', 'actors', 'directors', 'boxoffice',)
+        fields = ('title', 'image', 'subtitle', 'pubDate', 'userRating','watchGrade', 'showTm', 'boxoffice', 'genres', 'actors', 'directors', )
 
