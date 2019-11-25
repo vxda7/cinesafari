@@ -78,7 +78,6 @@ def datasave(request):
             naver_score = 0
             imageurls.append("nosrc")
         naver_scores.append(naver_score)
-        # movie_datas['movieListResult']['movieList'][idx]['userRating'] = naver_score
         if len(naver_data['items']) > 0:
             image_data = naver_data['items'][0]['image']
             movie_datas['movieListResult']['movieList'][idx]['image'] = image_data
@@ -126,15 +125,6 @@ def datasave(request):
     moviedatas = list(Movie.objects.values())
     return JsonResponse(moviedatas, safe=False)
 
-    # context = {
-    #     'MOVIE_URL': MOVIE_URL,
-    #     'movie_datas' : movie_datas,
-    #     'directors': directors,
-    #     'actors': actors,
-    #     'movie_detail_datas': movie_detail_datas,
-    # }
-    # return render(request, 'index.html', context)
-
 
 # 박스오피스 데이터 api에서 모아서 저장하기
 @api_view(['GET'])
@@ -157,22 +147,22 @@ def boxoffice_create(request):
         'X-Naver-Client-Id': NAVER_ID,
         'X-Naver-Client-Secret': NAVER_SECRET,
     }
-    print(movie_datas)
-    raise
     ########################################################## 수정
     movie_detail_datas = []
     imageurls = []
     naver_scores = []
+    rank = []
     directors = set()
     actors = set()
     genres = set()
     idx = 0
-    for movie_data in movie_datas['movieListResult']['weeklyBoxOfficeList']:
+    for movie_data in movie_datas['boxOfficeResult']['weeklyBoxOfficeList']:
         movie_name = movie_data['movieNm']
         naver_data = requests.get(f'{NAVER_URL}?query={movie_name}', headers=headers).json()
         movie_code = movie_data['movieCd']
         movie_detail_data = requests.get(f'{DETAIL_URL}?key={MOVIE_KEY}&movieCd={movie_code}').json()
         movie_detail_datas.append(movie_detail_data)
+        rank.append(movie_data['rank'])
 
         if naver_data['items']:
             naver_score = naver_data['items'][0]['userRating']
@@ -200,13 +190,13 @@ def boxoffice_create(request):
             naver_score = 0
             imageurls.append("nosrc")
         naver_scores.append(naver_score)
-        # movie_datas['movieListResult']['movieList'][idx]['userRating'] = naver_score
+
         if len(naver_data['items']) > 0:
             image_data = naver_data['items'][0]['image']
-            movie_datas['movieListResult']['weeklyBoxOfficeList'][idx]['image'] = image_data
+            movie_datas['boxOfficeResult']['weeklyBoxOfficeList'][idx]['image'] = image_data
         # 영화감독, 배우 추가            
-        if movie_data['directors']:
-            for one in movie_data['directors']:
+        if movie_detail_data['movieInfoResult']['movieInfo']['directors']:
+            for one in movie_detail_data['movieInfoResult']['movieInfo']['directors']:
                 directors.add(one['peopleNm'])
         if movie_detail_data['movieInfoResult']['movieInfo']['actors']:
             for one in movie_detail_data['movieInfoResult']['movieInfo']['actors']:
@@ -222,6 +212,8 @@ def boxoffice_create(request):
         Director.objects.get_or_create(name=one)
     for one in genres:
         Genre.objects.get_or_create(name=one)
+
+
     idx = 0
     for one in movie_detail_datas:
         title = one['movieInfoResult']['movieInfo']['movieNm']
@@ -229,12 +221,12 @@ def boxoffice_create(request):
         subtitle = one['movieInfoResult']['movieInfo']['movieNmEn']
         pubDate = one['movieInfoResult']['movieInfo']['openDt']
         userRating = naver_scores[idx]
-        boxoffice = one['rank']
+        boxoffice = rank[idx]
         genres_list = []
         directors = []
         actors = []
         
-        movie = Movie.objects.get_or_create(title=title, image=image, subtitle=subtitle, pubDate=pubDate, userRating=userRating)[0]
+        movie = Movie.objects.get_or_create(title=title, image=image, subtitle=subtitle, pubDate=pubDate, userRating=userRating, boxoffice=boxoffice)[0]
         for genre in one['movieInfoResult']['movieInfo']['genres']:
             genreinstance = Genre.objects.get(name=genre['genreNm'])
             movie.genres.add(genreinstance)
@@ -293,7 +285,8 @@ def boxoffice_create(request):
 @api_view(['GET'])
 @permission_classes((AllowAny,))
 def boxoffice(request):
-    boxoffices = list(Boxoffice.objects.values())
+    boxoffice = Movie.objects.filter(boxoffice__gte=1)   # rank가 1 이상인 사람
+    boxoffices = list(boxoffice.values())
     return JsonResponse(boxoffices, safe=False)
 
 
