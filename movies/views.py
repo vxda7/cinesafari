@@ -46,6 +46,8 @@ def datasave(request):
     naver_scores = []
     watchgrades = []
     showtimes = []
+    descriptions = []
+    descript_points = []
     directors = set()
     actors = set()
     genres = set()
@@ -86,9 +88,36 @@ def datasave(request):
                 imageurls.append(img_src)
             else:
                 imageurls.append("")
+            # 스토리 가져오기
+            descript_url = "https://movie.naver.com/movie/bi/mi/basic.nhn?code=" + image_code
+            html = urllib.request.urlopen(descript_url)
+            source = html.read()
+            soup = BeautifulSoup(source, "html.parser")
+            descript = soup.find("p", {"class": "con_tx"})
+            
+            if descript:
+                temp = descript.text
+                temp = temp.replace('\r', '')
+                temp = temp.replace('\xa0', '')
+                descriptions.append(temp)
+            else:
+                descriptions.append("no descript")
+
+            # 한줄 스토리 가져오기
+            descript_point = soup.find("h5", {"class":"h_tx_story"})
+            if descript_point:
+                temp = descript_point.text
+                temp = temp.replace('\r', '')
+                temp = temp.replace('\xa0', '')
+                descript_points.append(temp)
+            else:
+                descript_points.append("no descript_point")    
         else:
             naver_score = 0
             imageurls.append("nosrc")
+            descriptions.append("no descript")
+            descript_points.append("no descript_point")
+
         naver_scores.append(naver_score)
         if len(naver_data['items']) > 0:
             image_data = naver_data['items'][0]['image']
@@ -120,6 +149,8 @@ def datasave(request):
         userRating = naver_scores[idx]
         watchGrade = watchgrades[idx]
         showTm = showtimes[idx]
+        descript_point = descript_points[idx]
+        description = descriptions[idx]
         genres_list = []
         directors = []
         actors = []
@@ -127,7 +158,7 @@ def datasave(request):
             movie = Movie.objects.get(title=title)
             movie.userRating = userRating
         except:
-            movie = Movie.objects.get_or_create(title=title, image=image, subtitle=subtitle, pubDate=pubDate, watchGrade=watchGrade, showTm=showTm, userRating=userRating)[0]
+            movie = Movie.objects.get_or_create(title=title, image=image, subtitle=subtitle, pubDate=pubDate, watchGrade=watchGrade, showTm=showTm, userRating=userRating, description=description, descript_point=descript_point)[0]
 
 
         for genre in one['movieInfoResult']['movieInfo']['genres']:
@@ -140,7 +171,6 @@ def datasave(request):
             actorinstance = Actor.objects.get(name=actor['peopleNm'])
             movie.actors.add(actorinstance)
         idx += 1
-    
 
     moviedatas = list(Movie.objects.values())
     return JsonResponse(moviedatas, safe=False)
@@ -174,6 +204,8 @@ def boxoffice_create(request):
     rank = []
     watchgrades = []
     showtimes = []
+    descriptions = []
+    descript_points = []
     directors = set()
     actors = set()
     genres = set()
@@ -215,9 +247,34 @@ def boxoffice_create(request):
                 imageurls.append(img_src)
             else:
                 imageurls.append("")
+
+            # 스토리 가져오기
+            descript_url = "https://movie.naver.com/movie/bi/mi/basic.nhn?code=" + image_code
+            html = urllib.request.urlopen(descript_url)
+            source = html.read()
+            soup = BeautifulSoup(source, "html.parser")
+            descript = soup.find("p", {"class": "con_tx"})
+            if descript:
+                temp = descript.text
+                temp = temp.replace('\r', '')
+                temp = temp.replace('\xa0', '')
+                descriptions.append(temp)
+            else:
+                descriptions.append("no descript")
+            # 한줄스토리 가져오기
+            descript_point = soup.find("h5", {"class":"h_tx_story"})
+            if descript_point:
+                temp = descript_point.text
+                temp = temp.replace('\r', '')
+                temp = temp.replace('\xa0', '')
+                descript_points.append(temp)
+            else:
+                descript_points.append("no descript_point")    
         else:
             naver_score = 0
             imageurls.append("nosrc")
+            descriptions.append("no descript")
+            descript_points.append("no descript_point")
         naver_scores.append(naver_score)
 
         if len(naver_data['items']) > 0:
@@ -252,12 +309,14 @@ def boxoffice_create(request):
         userRating = naver_scores[idx]
         boxoffice = rank[idx]
         watchGrade = watchgrades[idx]
+        description = descriptions[idx]
+        descript_point = descript_points[idx]
         showTm = showtimes[idx]
         genres_list = []
         directors = []
         actors = []
         
-        movie = Movie.objects.get_or_create(title=title, image=image, subtitle=subtitle, pubDate=pubDate, userRating=userRating, boxoffice=boxoffice, watchGrade=watchGrade, showTm=showTm)[0]
+        movie = Movie.objects.get_or_create(title=title, image=image, subtitle=subtitle, pubDate=pubDate, userRating=userRating, boxoffice=boxoffice, watchGrade=watchGrade, showTm=showTm, description=description, descript_point=descript_point)[0]
         for genre in one['movieInfoResult']['movieInfo']['genres']:
             genreinstance = Genre.objects.get(name=genre['genreNm'])
             movie.genres.add(genreinstance)
