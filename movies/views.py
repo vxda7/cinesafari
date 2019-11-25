@@ -2,14 +2,18 @@ from django.shortcuts import render, get_object_or_404
 import json, os, requests
 from decouple import config
 from datetime import datetime, timedelta
-from .serializers import GenreSerializer, DirectorSerializer, MovieSerializer, ActorSerializer, UserSerializer
+from .serializers import GenreSerializer, DirectorSerializer, MovieSerializer, ActorSerializer, UserSerializer, CreateUserSerializer, LoginUserSerializer
 from rest_framework.decorators import api_view, permission_classes,authentication_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import Movie, Genre, Director, Actor
+from .models import Movie, Genre, Director, Actor, Review
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse, HttpResponse
 from bs4 import BeautifulSoup
 import urllib.request
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth import login as auth_login
+from django.contrib.auth import logout as auth_logout
+from accounts.models import User
 
 # Create your views here.
 
@@ -22,7 +26,7 @@ def datasave(request):
     MOVIE_KEY = config('MOVIE_KEY')
     BASIC_URL = 'http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json'
     DETAIL_URL = 'http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json'
-    MOVIE_URL = f'{BASIC_URL}?key={MOVIE_KEY}&openStartDt=2019&openEndDt={thisyear}&itemPerPage=100'
+    MOVIE_URL = f'{BASIC_URL}?key={MOVIE_KEY}&openStartDt=2019&openEndDt={thisyear}&itemPerPage=10'
     # 영화 데이터 갯수 --------------------------------------------------------------------------↑
     movie_datas = requests.get(MOVIE_URL).json()
 
@@ -40,6 +44,8 @@ def datasave(request):
     movie_detail_datas = []
     imageurls = []
     naver_scores = []
+    watchgrades = []
+    showtimes = []
     directors = set()
     actors = set()
     genres = set()
@@ -50,7 +56,14 @@ def datasave(request):
         movie_code = movie_data['movieCd']
         movie_detail_data = requests.get(f'{DETAIL_URL}?key={MOVIE_KEY}&movieCd={movie_code}').json()
         movie_detail_datas.append(movie_detail_data)
-
+        if movie_detail_data['movieInfoResult']['movieInfo']['audits']:
+            watchgrades.append(movie_detail_data['movieInfoResult']['movieInfo']['audits'][0]['watchGradeNm'])
+        else:
+            watchgrades.append("")
+        if movie_detail_data['movieInfoResult']['movieInfo']['showTm']:
+            showtimes.append(movie_detail_data['movieInfoResult']['movieInfo']['showTm'])
+        else:
+            showtimes.append(0)
         if naver_data['items']:
             naver_score = naver_data['items'][0]['userRating']
             # 이미지 가져오기
@@ -105,10 +118,18 @@ def datasave(request):
         subtitle = one['movieInfoResult']['movieInfo']['movieNmEn']
         pubDate = one['movieInfoResult']['movieInfo']['openDt']
         userRating = naver_scores[idx]
+        watchGrade = watchgrades[idx]
+        showTm = showtimes[idx]
         genres_list = []
         directors = []
         actors = []
-        movie = Movie.objects.get_or_create(title=title, image=image, subtitle=subtitle, pubDate=pubDate, userRating=userRating)[0]
+        try:
+            movie = Movie.objects.get(title=title)
+            movie.userRating = userRating
+        except:
+            movie = Movie.objects.get_or_create(title=title, image=image, subtitle=subtitle, pubDate=pubDate, watchGrade=watchGrade, showTm=showTm, userRating=userRating)[0]
+
+
         for genre in one['movieInfoResult']['movieInfo']['genres']:
             genreinstance = Genre.objects.get(name=genre['genreNm'])
             movie.genres.add(genreinstance)
@@ -129,7 +150,7 @@ def datasave(request):
 @api_view(['GET'])
 @permission_classes((AllowAny,))
 def boxoffice_create(request):
-    now = datetime.now() + timedelta(days=-7)
+    now = datetime.now() + timedelta(weeks=-1)
     today = now.strftime('%Y%m%d')
     MOVIE_KEY = config('MOVIE_KEY')
     BASIC_URL = 'http://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchWeeklyBoxOfficeList.json'
@@ -274,12 +295,36 @@ def moviedata(request):
 @api_view(['POST'])
 @permission_classes((AllowAny,))
 def signup(request):
-    serializer = UserSerializer(data=request.data)
+    serializer = CreateUserSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
-        return JsonResponse(serializer.data)
+        user = serializer.save()
+        return JsonResponse({"user": UserSerializer(user).data})
     return HttpResponse(status=400)
 
 
+# @api_view(['POST'])
+# @permission_classes((AllowAny,))
+# def login(request):
+#     user = User.objects.get(username=request.username, password=request.password)
+#     print("2")
+#     serializer = UserSerializer()
+#     print("3")
+#     if serializer.is_valid():
+#         auth_login(request, serializer)
+#         return JsonResponse({"msg":"로그인 되었습니다."})
+#     return JsonResponse({"msg":"로그인에 실패하였습니다."})
+
+
+# @api_view(['POST'])
+# @permission_classes((AllowAny,))
+# def logout(request):
+#     auth_logout(request)
+#     return JsonResponse({"msg":"로그아웃 되었습니다."})
+
+@api_view(['POST'])
+@permission_classes((AllowAny,))
 def reviews(request):
-    reviews = Review.query.filter_by().all()
+    reviews = Review.objects.filter(movie=request.movieid)
+    print(reviews)
+    moviedatas = list(reviews.objects.values())
+    return JsonResponse(moviedatas, safe=False)
