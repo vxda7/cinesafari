@@ -20,7 +20,12 @@ urlpatterns = [
     path('datasave/', views.datasave, name="datasave"),
     path('boxoffice_create/', views.boxoffice_create, name="boxoffice_create"),
     path('boxoffice/', views.boxoffice, name="boxoffice"),
+    
     path('reviews/', views.reviews, name="reviews"),
+    path('review_create/', views.review_create, name="review_create"),
+    path('review_update/', views.review_update, name="review_update"),
+    path('review_delete/', views.review_delete, name="review_delete"),
+    path('user_reviews/', views.user_reviews, name="user_reviews"),
 
     path('signup/', views.signup, name="signup"),
 ]
