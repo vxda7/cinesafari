@@ -49,6 +49,8 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    movie = MovieSerializer()
     class Meta:
         model = Review
         fields = ("id", "content", "score", "user", "movie")

@@ -14,8 +14,6 @@ from accounts.models import User
 @authentication_classes((JSONWebTokenAuthentication,))
 def review_create(request):
     serializer = ReviewSerializer(data=request.data)
-    # reviews = Review.objects.filter(movie=request.movieid)
-
     if serializer.is_valid(raise_exception=True):
         serializer.save()
         return JsonResponse({"msg":"저장이 완료되었습니다"})
@@ -25,6 +23,9 @@ def review_create(request):
 @permission_classes((AllowAny,))
 def reviews(request, id):
     reviewdatas = list(Review.objects.filter(movie_id=id).values())
+    for reviewdata in reviewdatas:
+        reviewdata['username'] = User.objects.get(id=reviewdata['user_id']).username
+        reviewdata['moviename'] = Movie.objects.get(id=reviewdata['movie_id']).title
     return JsonResponse(reviewdatas, safe=False)
 
 
@@ -55,4 +56,7 @@ def review_delete(request, id):
 @authentication_classes((JSONWebTokenAuthentication,))
 def user_reviews(request, id):
     reviewdatas = list(Review.objects.filter(user_id=id).values())
+    for reviewdata in reviewdatas:
+        reviewdata['username'] = User.objects.get(id=reviewdata['user_id']).username
+        reviewdata['moviename'] = Movie.objects.get(id=reviewdata['movie_id']).title
     return JsonResponse(reviewdatas, safe=False)
