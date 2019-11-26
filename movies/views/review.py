@@ -21,7 +21,7 @@ def review_create(request):
         return JsonResponse({"msg":"저장이 완료되었습니다"})
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes((AllowAny,))
 def reviews(request, id):
     reviewdatas = list(Review.objects.filter(movie_id=id).values())
