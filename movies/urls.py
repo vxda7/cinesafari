@@ -16,16 +16,18 @@ Including another URLconf
 from django.urls import path, include
 from . import views
 
+app_name="movies"
+
 urlpatterns = [
     path('datasave/', views.datasave, name="datasave"),
     path('boxoffice_create/', views.boxoffice_create, name="boxoffice_create"),
     path('boxoffice/', views.boxoffice, name="boxoffice"),
     
     path('reviews/<int:id>/', views.reviews, name="reviews"),
-    path('review_create/', views.review_create, name="review_create"),
-    path('review_update/<int:id>/', views.review_update, name="review_update"),
-    path('review_delete/<int:id>/', views.review_delete, name="review_delete"),
-    path('user_reviews/<int:id>/', views.user_reviews, name="user_reviews"),
+    path('review-create/', views.review_create, name="review_create"),
+    path('review-update/<int:id>/', views.review_update, name="review_update"),
+    path('review-delete/<int:id>/', views.review_delete, name="review_delete"),
+    path('user-reviews/<int:id>/', views.user_reviews, name="user_reviews"),
 
     path('signup/', views.signup, name="signup"),
 ]
