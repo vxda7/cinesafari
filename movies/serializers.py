@@ -26,20 +26,15 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'password',)
-    # def create(self, validated_data):
-    #     user = User.objects.create_user(**validated_data)
-    #     return user
 
 
 class MovieSerializer(serializers.ModelSerializer):
     genres = GenreSerializer(many=True)
     directors = DirectorSerializer(many=True)
     actors = ActorSerializer(many=True)
-    # like_users = UserSerializer(many=True)
     class Meta:
         model = Movie
-        fields = ('title', 'image', 'subtitle', 'pubDate', 'userRating','watchGrade', 'showTm', 'boxoffice', 'genres', 'actors', 'directors', )
-
+        fields = ('title', 'image', 'subtitle', 'pubDate', 'userRating','watchGrade', 'showTm', 'boxoffice', 'genres', 'actors', 'directors', 'descript_point', 'description')
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
@@ -51,15 +46,3 @@ class CreateUserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
-
-
-
-class LoginUserSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    password = serializers.CharField()
-
-    def validate(self, data):
-        user = authenticate(**data)
-        if user and user.id_active:
-            return user
-        raise serializers.ValidationError("Unable to log with provided credentials.")

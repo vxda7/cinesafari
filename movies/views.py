@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 import json, os, requests
 from decouple import config
 from datetime import datetime, timedelta
-from .serializers import GenreSerializer, DirectorSerializer, MovieSerializer, ActorSerializer, UserSerializer, CreateUserSerializer, LoginUserSerializer
+from .serializers import GenreSerializer, DirectorSerializer, MovieSerializer, ActorSerializer, UserSerializer, CreateUserSerializer
 from rest_framework.decorators import api_view, permission_classes,authentication_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Movie, Genre, Director, Actor, Review
@@ -355,30 +355,10 @@ def moviedata(request):
 @permission_classes((AllowAny,))
 def signup(request):
     serializer = CreateUserSerializer(data=request.data)
-    if serializer.is_valid():
+    if serializer.is_valid(raise_exception=True):
         user = serializer.save()
         return JsonResponse({"user": UserSerializer(user).data})
-    return HttpResponse(status=400)
 
-
-# @api_view(['POST'])
-# @permission_classes((AllowAny,))
-# def login(request):
-#     user = User.objects.get(username=request.username, password=request.password)
-#     print("2")
-#     serializer = UserSerializer()
-#     print("3")
-#     if serializer.is_valid():
-#         auth_login(request, serializer)
-#         return JsonResponse({"msg":"로그인 되었습니다."})
-#     return JsonResponse({"msg":"로그인에 실패하였습니다."})
-
-
-# @api_view(['POST'])
-# @permission_classes((AllowAny,))
-# def logout(request):
-#     auth_logout(request)
-#     return JsonResponse({"msg":"로그아웃 되었습니다."})
 
 @api_view(['POST'])
 @permission_classes((AllowAny,))
