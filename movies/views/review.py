@@ -7,6 +7,8 @@ from ..models import Movie, Genre, Director, Actor, Review
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse, HttpResponse
 from accounts.models import User
+from copy import deepcopy
+from django.forms.models import model_to_dict
 
 
 @api_view(['POST'])
@@ -16,7 +18,10 @@ def review_create(request):
     serializer = ReviewSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
         serializer.save()
-        return JsonResponse({"msg":"저장이 완료되었습니다"})
+    review = model_to_dict(Review.objects.get(id=serializer.data['id']))
+    review['username'] = User.objects.get(id=review['user']).username
+    review['moviename'] = Movie.objects.get(id=review['movie']).title
+    return JsonResponse(review, safe=False)
 
 
 @api_view(['GET'])
