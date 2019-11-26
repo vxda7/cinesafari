@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from ..serializers import GenreSerializer, DirectorSerializer, MovieSerializer, ActorSerializer, UserSerializer, CreateUserSerializer, ReviewSerializer
 from rest_framework.decorators import api_view, permission_classes,authentication_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from ..models import Movie, Genre, Director, Actor, Review
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse, HttpResponse
@@ -37,7 +38,7 @@ def datasave(request):
     # 유튜브 데이터
     GOOGLE_KEY = config('GOOGLE_KEY')
     GOOGLE_URL = f"https://www.googleapis.com/youtube/v3/search?key={GOOGLE_KEY}"
-    
+
     # 데이터 통합
     movie_detail_datas = []
     imageurls = []
@@ -46,6 +47,7 @@ def datasave(request):
     showtimes = []
     descriptions = []
     descript_points = []
+    videos = []
     directors = set()
     actors = set()
     genres = set()
@@ -55,7 +57,7 @@ def datasave(request):
         naver_data = requests.get(f'{NAVER_URL}?query={movie_name}', headers=headers).json()
         movie_code = movie_data['movieCd']
         movie_detail_data = requests.get(f'{DETAIL_URL}?key={MOVIE_KEY}&movieCd={movie_code}').json()
-        movie_detail_datas.append(movie_detail_data)
+        movie_detail_datas.append(movie_detail_data)        
         if movie_detail_data['movieInfoResult']['movieInfo']['audits']:
             watchgrades.append(movie_detail_data['movieInfoResult']['movieInfo']['audits'][0]['watchGradeNm'])
         else:
@@ -115,11 +117,14 @@ def datasave(request):
             imageurls.append("nosrc")
             descriptions.append("no descript")
             descript_points.append("no descript_point")
-
         naver_scores.append(naver_score)
         if len(naver_data['items']) > 0:
             image_data = naver_data['items'][0]['image']
             movie_datas['movieListResult']['movieList'][idx]['image'] = image_data
+
+        # 비디오 정보 가져오기
+        
+
         # 영화감독, 배우 추가            
         if movie_data['directors']:
             for one in movie_data['directors']:
@@ -146,28 +151,29 @@ def datasave(request):
         pubDate = one['movieInfoResult']['movieInfo']['openDt']
         userRating = naver_scores[idx]
         watchGrade = watchgrades[idx]
-        showTm = showtimes[idx]
-        descript_point = descript_points[idx]
-        description = descriptions[idx]
-        genres_list = []
-        directors = []
-        actors = []
-        try:
-            movie = Movie.objects.get(title=title)
-            movie.userRating = userRating
-        except:
-            movie = Movie.objects.get_or_create(title=title, image=image, subtitle=subtitle, pubDate=pubDate, watchGrade=watchGrade, showTm=showTm, userRating=userRating, description=description, descript_point=descript_point)[0]
+        if watchGrade != "청소년관람불가":
+            showTm = showtimes[idx]
+            descript_point = descript_points[idx]
+            description = descriptions[idx]
+            genres_list = []
+            directors = []
+            actors = []
+            try:
+                movie = Movie.objects.get(title=title)
+                movie.userRating = userRating
+            except:
+                movie = Movie.objects.get_or_create(title=title, image=image, subtitle=subtitle, pubDate=pubDate, watchGrade=watchGrade, showTm=showTm, userRating=userRating, description=description, descript_point=descript_point)[0]
 
 
-        for genre in one['movieInfoResult']['movieInfo']['genres']:
-            genreinstance = Genre.objects.get(name=genre['genreNm'])
-            movie.genres.add(genreinstance)
-        for director in one['movieInfoResult']['movieInfo']['directors']:
-            directorinstance = Director.objects.get(name=director['peopleNm'])
-            movie.directors.add(directorinstance)
-        for actor in one['movieInfoResult']['movieInfo']['actors']:
-            actorinstance = Actor.objects.get(name=actor['peopleNm'])
-            movie.actors.add(actorinstance)
+            for genre in one['movieInfoResult']['movieInfo']['genres']:
+                genreinstance = Genre.objects.get(name=genre['genreNm'])
+                movie.genres.add(genreinstance)
+            for director in one['movieInfoResult']['movieInfo']['directors']:
+                directorinstance = Director.objects.get(name=director['peopleNm'])
+                movie.directors.add(directorinstance)
+            for actor in one['movieInfoResult']['movieInfo']['actors']:
+                actorinstance = Actor.objects.get(name=actor['peopleNm'])
+                movie.actors.add(actorinstance)
         idx += 1
 
     moviedatas = list(Movie.objects.values())

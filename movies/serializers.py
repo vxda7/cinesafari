@@ -7,25 +7,25 @@ from django.contrib.auth import authenticate
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
-        fields = ('name',)
+        fields = ('id', 'name',)
 
 
 class DirectorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Director
-        fields = ('name',)
+        fields = ('id', 'name',)
 
 
 class ActorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Actor
-        fields = ('name',)
+        fields = ('id', 'name',)
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'password',)
+        fields = ('id', 'username', 'password',)
 
 
 class MovieSerializer(serializers.ModelSerializer):
@@ -34,7 +34,7 @@ class MovieSerializer(serializers.ModelSerializer):
     actors = ActorSerializer(many=True)
     class Meta:
         model = Movie
-        fields = ('title', 'image', 'subtitle', 'pubDate', 'userRating','watchGrade', 'showTm', 'boxoffice', 'genres', 'actors', 'directors', 'descript_point', 'description')
+        fields = ('id', 'title', 'image', 'subtitle', 'pubDate', 'userRating','watchGrade', 'showTm', 'boxoffice', 'genres', 'actors', 'directors', 'descript_point', 'description')
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
@@ -51,4 +51,4 @@ class CreateUserSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ("content", "score", "user", "movie")
+        fields = ("id", "content", "score", "user", "movie")
