@@ -8,7 +8,8 @@ from django.db.models import Q
 import operator
 from django.forms.models import model_to_dict
 import json
-
+from django.core import serializers
+from ..serializers import MovieSerializer, GenreSerializer
 @api_view(['GET'])
 @permission_classes((AllowAny,))
 def recommand(request, id):
@@ -47,11 +48,35 @@ def recommand(request, id):
                 one = sortedgenres.pop(0)
                 movies = Movie.objects.filter(genres=one[0]).filter(~Q(id__in=every_movies))[:10]
                 removies.extend(movies)
-        return JsonResponse(json.dumps(removies), safe=False)
-
-
+        serializers = MovieSerializer(removies, many=True)
+        return JsonResponse(serializers.data, safe=False)
         
-    # 처음온 사람이면 좋아요 순으로 추천
+    # 좋은 리뷰가 많은 순으로 추천
     else:
+        reviews = Review.objects.all()
+        like_reviews = []
+        for review in reviews:
+            if review.score > 6:
+                like_reviews.append(review)
+        movie_ids = list(map(lambda x:x.movie_id, like_reviews))
+
+        # 유저들이 본 좋아하던 영화들 모아오기
+        movies = Movie.objects.filter(id__in=movie_ids)
+    
         movies = Movie.objects.all().order_by('-like_users')[:10]
         return JsonResponse(movies.json(), safe=False)
+
+
+
+@api_view(['GET'])
+@permission_classes((AllowAny,))
+def similar(request, id):
+    movie = Movie.objects.get(id=id)
+    # 영화의 장르들 모으기
+    genres = []
+    for genre in movie.genres.all():
+        genres.append(genre)
+    # 같은 장르의 영화들 모으기
+    movies = Movie.objects.filter(genres__in=genres).filter(~Q(id=id))
+    serializers = MovieSerializer(movies, many=True)
+    return JsonResponse(serializers.data, safe=False)

@@ -34,7 +34,7 @@ class MovieSerializer(serializers.ModelSerializer):
     actors = ActorSerializer(many=True)
     class Meta:
         model = Movie
-        fields = ('id', 'title', 'image', 'subtitle', 'pubDate', 'userRating','watchGrade', 'showTm', 'boxoffice', 'genres', 'actors', 'directors', 'descript_point', 'description', 'video')
+        fields = ('id', 'title', 'image', 'subtitle', 'pubDate', 'userRating','watchGrade', 'showTm', 'boxoffice', 'genres', 'actors', 'directors', 'descript_point', 'description', 'video', 'thumbnail')
 
 
 class CreateUserSerializer(serializers.ModelSerializer):

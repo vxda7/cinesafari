@@ -43,10 +43,6 @@ class Movie(models.Model):
     boxoffice = models.IntegerField(default=0)
     def __str__(self):
         return self.title
-    def as_json(self):
-        return dict(
-            # title = self.title, 
-        )
 
 
 class Review(models.Model):

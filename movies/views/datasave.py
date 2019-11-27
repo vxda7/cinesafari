@@ -21,7 +21,7 @@ def datasave(request):
     MOVIE_KEY = config('MOVIE_KEY')
     BASIC_URL = 'http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json'
     DETAIL_URL = 'http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json'
-    MOVIE_URL = f'{BASIC_URL}?key={MOVIE_KEY}&openStartDt=2019&openEndDt={thisyear}&itemPerPage=10'
+    MOVIE_URL = f'{BASIC_URL}?key={MOVIE_KEY}&openStartDt=2019&openEndDt={thisyear}&itemPerPage=100'
     # 영화 데이터 갯수 --------------------------------------------------------------------------↑
     movie_datas = requests.get(MOVIE_URL).json()
 
@@ -125,7 +125,7 @@ def datasave(request):
 
         # 비디오 정보 가져오기 + 썸네일
         video_datas = requests.get(f"{GOOGLE_URL}{movie_name}예고편").json()
-        if video_datas['items']:
+        if 'items' in video_datas:
             videos.append(video_datas['items'][0]['id']['videoId'])
             thumbnails.append(video_datas['items'][0]['snippet']['thumbnails']['high']['url'])
         else:

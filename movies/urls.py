@@ -28,5 +28,6 @@ urlpatterns = [
     path('user-reviews/<int:id>/', views.user_reviews),
 
     path('signup/', views.signup),
-    path('recommand/<int:id>/', views.recommand)
+    path('recommand/<int:id>/', views.recommand),
+    path('similar/<int:id>/', views.similar),
 ]

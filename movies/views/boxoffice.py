@@ -126,7 +126,7 @@ def boxoffice_create(request):
         
         # 비디오 정보 가져오기 + 썸네일
         video_datas = requests.get(f"{GOOGLE_URL}{movie_name}예고편").json()
-        if video_datas['items']:
+        if 'items' in video_datas:
             videos.append(video_datas['items'][0]['id']['videoId'])
             thumbnails.append(video_datas['items'][0]['snippet']['thumbnails']['high']['url'])
         else:

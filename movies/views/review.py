@@ -35,8 +35,9 @@ def reviews(request, id):
 
 
 @api_view(['PUT'])
-@permission_classes((IsAuthenticated,))
-@authentication_classes((JSONWebTokenAuthentication,))
+@permission_classes((AllowAny,))
+# @permission_classes((IsAuthenticated,))
+# @authentication_classes((JSONWebTokenAuthentication,))
 def review_update(request, id):
     content = request.data['content']
     score = request.data['score']
@@ -44,7 +45,8 @@ def review_update(request, id):
     review.content = content
     review.score = score
     review.save()
-    return JsonResponse({"msg":"수정이 완료되었습니다."})
+    serializer = ReviewSerializer(review)
+    return JsonResponse(serializer.data, safe=False)
 
 
 @api_view(['DELETE'])
