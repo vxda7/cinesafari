@@ -61,9 +61,7 @@ def recommand(request, id):
         movie_ids = list(map(lambda x:x.movie_id, like_reviews))
 
         # 유저들이 본 좋아하던 영화들 모아오기
-        movies = Movie.objects.filter(id__in=movie_ids)
-    
-        movies = Movie.objects.all().order_by('-like_users')[:10]
+        movies = Movie.objects.filter(id__in=movie_ids)[:10]
         return JsonResponse(movies.json(), safe=False)
 
 
