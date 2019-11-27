@@ -37,7 +37,7 @@ def datasave(request):
     
     # 유튜브 데이터
     GOOGLE_KEY = config('GOOGLE_KEY')
-    GOOGLE_URL = f"https://www.googleapis.com/youtube/v3/search?key={GOOGLE_KEY}"
+    GOOGLE_URL = f"https://www.googleapis.com/youtube/v3/search?key={GOOGLE_KEY}&part=snippet&type=video&q="
 
     # 데이터 통합
     movie_detail_datas = []
@@ -48,6 +48,7 @@ def datasave(request):
     descriptions = []
     descript_points = []
     videos = []
+    thumbnails = []
     directors = set()
     actors = set()
     genres = set()
@@ -122,8 +123,14 @@ def datasave(request):
             image_data = naver_data['items'][0]['image']
             movie_datas['movieListResult']['movieList'][idx]['image'] = image_data
 
-        # 비디오 정보 가져오기
-        
+        # 비디오 정보 가져오기 + 썸네일
+        video_datas = requests.get(f"{GOOGLE_URL}{movie_name}예고편").json()
+        if video_datas['items']:
+            videos.append(video_datas['items'][0]['id']['videoId'])
+            thumbnails.append(video_datas['items'][0]['snippet']['thumbnails']['high']['url'])
+        else:
+            videos.append("")
+            thumbnails.append("")
 
         # 영화감독, 배우 추가            
         if movie_data['directors']:
@@ -155,6 +162,8 @@ def datasave(request):
             showTm = showtimes[idx]
             descript_point = descript_points[idx]
             description = descriptions[idx]
+            video = videos[idx]
+            thumbnail = thumbnails[idx]
             genres_list = []
             directors = []
             actors = []
@@ -162,8 +171,8 @@ def datasave(request):
                 movie = Movie.objects.get(title=title)
                 movie.userRating = userRating
             except:
-                movie = Movie.objects.get_or_create(title=title, image=image, subtitle=subtitle, pubDate=pubDate, watchGrade=watchGrade, showTm=showTm, userRating=userRating, description=description, descript_point=descript_point)[0]
-
+                movie = Movie.objects.get_or_create(title=title, image=image, subtitle=subtitle, pubDate=pubDate, watchGrade=watchGrade, 
+                showTm=showTm, userRating=userRating, description=description, descript_point=descript_point, video=video,thumbnail=thumbnail)[0]
 
             for genre in one['movieInfoResult']['movieInfo']['genres']:
                 genreinstance = Genre.objects.get(name=genre['genreNm'])

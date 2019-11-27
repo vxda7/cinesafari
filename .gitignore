@@ -1,4 +1,4 @@
-movies/.env
+movies/views/.env
 
 # Created by https://www.gitignore.io/api/vue,macos,python,django,windows,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=vue,macos,python,django,windows,visualstudiocode

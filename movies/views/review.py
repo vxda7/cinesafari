@@ -56,12 +56,13 @@ def review_delete(request, id):
     return JsonResponse({"msg":"삭제가 완료되었습니다."})
 
 
-@api_view(['POST'])
-@permission_classes((AllowAny,))
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
 @authentication_classes((JSONWebTokenAuthentication,))
 def user_reviews(request, id):
     reviewdatas = list(Review.objects.filter(user_id=id).values())
     for reviewdata in reviewdatas:
         reviewdata['username'] = User.objects.get(id=reviewdata['user_id']).username
         reviewdata['moviename'] = Movie.objects.get(id=reviewdata['movie_id']).title
+        reviewdata['image'] = Movie.objects.get(id=reviewdata['movie_id']).image
     return JsonResponse(reviewdatas, safe=False)
