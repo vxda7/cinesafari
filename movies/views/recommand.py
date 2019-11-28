@@ -79,7 +79,7 @@ def similar(request, id):
     for genre in movie.genres.all():
         genres.append(genre)
     # 같은 장르의 영화들 모으기
-    movies = Movie.objects.filter(genres__in=genres).filter(~Q(id=id))
+    movies = Movie.objects.filter(genres__in=genres).filter(~Q(id=id))[:5]
     serializers = MovieSerializer(movies, many=True)
     return JsonResponse(serializers.data, safe=False)
 
