@@ -14,7 +14,7 @@ from ..serializers import MovieSerializer, GenreSerializer
 @permission_classes((AllowAny,))
 def recommand(request, id):
     if id == 0:
-        user = User.object.get(id=1)
+        user = User.objects.get(id=1)
     else:
         user = User.objects.get(id=id)
     # 처음온 사람이 아니면
@@ -65,7 +65,8 @@ def recommand(request, id):
 
         # 유저들이 본 좋아하던 영화들 모아오기
         movies = Movie.objects.filter(id__in=movie_ids)[:10]
-        return JsonResponse(movies.json(), safe=False)
+        serializers = MovieSerializer(movies, many=True)
+        return JsonResponse(serializers.data, safe=False)
 
 
 
