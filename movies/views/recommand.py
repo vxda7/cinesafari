@@ -78,3 +78,19 @@ def similar(request, id):
     movies = Movie.objects.filter(genres__in=genres).filter(~Q(id=id))
     serializers = MovieSerializer(movies, many=True)
     return JsonResponse(serializers.data, safe=False)
+
+
+
+@api_view(['GET'])
+@permission_classes((AllowAny,))
+def search(request, query, choose):
+    # 검색어로 검색
+    if choose == 0:
+        movies = Movie.objects.filter(title__contain=query)
+        serializers = MovieSerializer(movies, many=True)
+        return JsonResponse(serializers.data, safe=False)
+    # 장르별로 검색
+    else:
+        movies = Movie.objects.filter(genres__in=choose)
+        serializers = MovieSerializer(movies, many=True)
+        return JsonResponse(serializers.data, safe=False)

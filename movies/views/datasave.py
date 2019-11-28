@@ -24,7 +24,6 @@ def datasave(request):
     MOVIE_URL = f'{BASIC_URL}?key={MOVIE_KEY}&openStartDt=2019&openEndDt={thisyear}&itemPerPage=100'
     # 영화 데이터 갯수 --------------------------------------------------------------------------↑
     movie_datas = requests.get(MOVIE_URL).json()
-
     # 네이버 데이터
     NAVER_ID = config('NAVER_ID')
     NAVER_SECRET = config('NAVER_KEY')

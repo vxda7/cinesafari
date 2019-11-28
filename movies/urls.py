@@ -30,4 +30,5 @@ urlpatterns = [
     path('signup/', views.signup),
     path('recommand/<int:id>/', views.recommand),
     path('similar/<int:id>/', views.similar),
+    path('search/<str:query>/<int:choose>/', views.search), 
 ]
