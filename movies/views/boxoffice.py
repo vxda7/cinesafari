@@ -17,7 +17,7 @@ from accounts.models import User
 @api_view(['GET'])
 @permission_classes((AllowAny,))
 def boxoffice_create(request):
-    for i in range(120, 200):
+    for i in range(3, 100):
         now = datetime.now() + timedelta(weeks=-i)
         today = now.strftime('%Y%m%d')
         MOVIE_KEY = config('MOVIE_KEY')

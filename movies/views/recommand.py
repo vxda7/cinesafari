@@ -13,7 +13,10 @@ from ..serializers import MovieSerializer, GenreSerializer
 @api_view(['GET'])
 @permission_classes((AllowAny,))
 def recommand(request, id):
-    user = User.objects.get(id=id)
+    if id == 0:
+        user = User.object.get(id=1)
+    else:
+        user = User.objects.get(id=id)
     # 처음온 사람이 아니면
     # 리뷰를 쓴 갯수 확인
     reviews = user.review_set
